@@ -1,0 +1,177 @@
+from PyQt4 import QtGui
+from PyQt4 import QtCore
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent
+from PyQt4.QtGui import QPalette
+from PyQt4.QtCore import Qt
+from com.sudoku.UniSolution import verificationResultat
+from com.sudoku.Generalisation import generalisation
+
+'''Definition de l action 'click' '''
+def clickable(widget):
+    class Filter(QObject):
+        clicked=pyqtSignal()
+        
+        def eventFilter(self,obj,event):
+            if obj==widget:
+                if event.type()==QEvent.MouseButtonRelease:
+                    if obj.rect().contains(event.pos()):
+                        self.clicked.emit()
+                        
+                        return True
+            return False
+    filter=Filter(widget)
+    widget.installEventFilter(filter)
+    return filter.clicked
+
+class Game(QtGui.QWidget):
+    def __init__(self):
+        super(Game,self).__init__()
+        vide=30
+        self.sdk=generalisation(vide)
+        self.lbls=[]
+        self.initUI()
+       
+
+    def setSudoku(self):
+#         self.sdk=sdk
+        
+        
+        vide=int(self.videNb.currentText())
+        self.sdk=generalisation(vide)
+        
+        for i in range(81):
+            self.lbls[i].setText("")
+        
+        for i in range(81):
+            if self.sdk[i//9][i%9]==0:
+                self.lbls[i].setText("")
+                self.lbls[i].setStyleSheet("QLabel { color : red; }")
+                self.defaut[i]="Non"
+            if self.sdk[i//9][i%9]!=0:
+                self.lbls[i].setText(str(self.sdk[i//9][i%9]))
+                self.lbls[i].setStyleSheet("QLabel { color : black; }")
+                self.defaut[i]="Oui"
+                
+        
+    def initUI(self):
+        grid=QtGui.QGridLayout()
+        self.setLayout(grid)
+
+        chiffres=[]
+        indices=[]
+        self.defaut=[]
+        
+        for i in range(81):
+            chiffres.append(self.sdk[i//9][i%9])
+            indices.append(i)
+        
+        positions=[(i,j) for i in range(9) for j in range(9)]
+        
+        for position,chiffre,indice in zip(positions,chiffres,indices):
+            if chiffre>0:
+                lbl=QtGui.QLabel(str(chiffre))
+                self.defaut.append("Oui")
+            if chiffre==0:
+                lbl=QtGui.QLabel()
+                self.defaut.append("Non")
+            lbl.setAlignment(QtCore.Qt.AlignCenter)
+            self.lbls.append(lbl)
+            grid.addWidget(lbl,*position)
+            
+            clickable(self.lbls[indice]).connect(lambda arg=indice: self.jouer(arg))
+        
+        lbl=QtGui.QLabel("Chiffre a ajouter :")
+        lbl.setAlignment(QtCore.Qt.AlignLeft)
+        grid.addWidget(lbl,*(4,9))
+        
+        self.txt=QtGui.QComboBox()
+        for i in range(1,10):
+            self.txt.addItems(str(i))
+        self.txt.insertItem(10,"Effacer")
+        grid.addWidget(self.txt,*(5,9))
+        
+        self.sm=QtGui.QLabel("Soumettre")
+        self.sm.setAlignment(QtCore.Qt.AlignCenter)
+        self.sm.setStyleSheet("QLabel { background:black ;color : white; }")
+        grid.addWidget(self.sm,*(7,9))
+        clickable(self.sm).connect(self.soumettre)
+        
+        self.rs=QtGui.QLabel()
+        grid.addWidget(self.rs,*(8,9))
+        self.rs.setAlignment(QtCore.Qt.AlignCenter)
+        self.rs.setStyleSheet("QLabel { color : blue; }")
+        
+        lbl=QtGui.QLabel("Nombre de vides")
+        grid.addWidget(lbl,*(0,9))
+        
+        self.videNb=QtGui.QComboBox()
+        self.videNb.insertItem(1,"30")
+        self.videNb.insertItem(2,"40")
+        self.videNb.insertItem(3,"45")
+        self.videNb.insertItem(4,"50")
+        self.videNb.insertItem(5,"52")
+        self.videNb.insertItem(6,"54")
+        self.videNb.insertItem(7,"1")
+        grid.addWidget(self.videNb,*(1,9))
+        
+        self.setSdk=QtGui.QLabel("Initialiser")
+        self.setSdk.setStyleSheet("QLabel { background:green ;color : black; }")
+        self.setSdk.setAlignment(QtCore.Qt.AlignCenter)
+        grid.addWidget(self.setSdk,*(2,9))
+        clickable(self.setSdk).connect(self.setSudoku)
+        
+        
+        
+        self.setGeometry(500,200,270,270)
+        self.setWindowTitle('Sudoku-Victor.H,LingXi.L')
+        self.setFixedSize(375,270)
+        self.show()
+    
+    def soumettre(self):
+        champs=[]
+        temp=[]
+        for i in range(9):
+            champsLigne=[]
+            for j in range(9):
+                if self.lbls[i*9+j].text()=="":
+                    temp.append("0")
+                if self.lbls[i*9+j].text()!="":
+                    temp.append(self.lbls[i*9+j].text())
+                champsLigne.append(int(temp[i*9+j]))
+            champs.append(champsLigne)
+            
+        resultat=verificationResultat(champs)
+        if resultat==1:
+            self.rs.setText("Felicitation !")
+        if resultat==0:
+            self.rs.setText("Non correct !")
+    
+    def jouer(self,indice):
+        label=self.lbls[indice]
+        if label.text()=="":
+            label.setText(self.txt.currentText())
+            label.setStyleSheet("QLabel { color : red; }")
+        if self.txt.currentText()=="Effacer" and self.defaut[indice]=="Non":
+            label.setText("")
+
+        
+    def paintEvent(self, event):
+        qp=QtGui.QPainter()
+        qp.begin(self)
+        self.drawLines(event, qp)
+        qp.end()
+    
+    def drawLines(self,event,qp):
+        pen = QtGui.QPen(QtCore.Qt.black, 5, QtCore.Qt.SolidLine)
+        qp.setPen(pen)
+        for i in range(4):
+            qp.drawLine(0, i*90, 270,i*90)
+            qp.drawLine(i*90, 0, i*90,270)
+        
+        pen.setStyle(QtCore.Qt.DashLine)
+        pen.setWidth(1)
+        qp.setPen(pen)
+        for i in range(1,9):
+            qp.drawLine(0, i*30, 270,i*30)
+            qp.drawLine(i*30, 0, i*30,270)
+\ No newline at end of file
