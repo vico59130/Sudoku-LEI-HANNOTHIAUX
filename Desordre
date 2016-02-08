@@ -1,0 +1,70 @@
+import copy
+import random
+from copy import deepcopy
+
+def desordre(champs):
+    i=0
+    while i<30:
+        i+=1
+        j=random.choice(range(5))
+        if j==0:
+            champs=varLigne(champs)
+        if j==1:
+            champs=varColonne(champs)
+        if j==2:
+            champs=varBlockLigne(champs)
+        if j==3:
+            champs=varBlockColonne(champs)
+        if j==4:
+            champs=transposer(champs)
+    return champs
+
+def varLigne(champs):
+    i=random.choice(range(3))
+    j=random.choice(range(3))+i*3
+    k=random.choice(range(3))+i*3
+    while j==k:
+        k=random.choice(range(3))+i*3
+    
+    temp=champs[j]
+    champs[j]=champs[k]
+    champs[k]=temp 
+    return champs
+
+def varColonne(champs):
+    champs=transposer(champs)
+    champs=varLigne(champs)
+    champs=transposer(champs)
+    return champs
+
+def varBlockLigne(champs):
+    i=random.choice(range(3))
+    j=random.choice(range(3))
+    while i==j:
+        j=random.choice(range(3))
+        
+    block1=[]
+    block2=[]
+    for l in range(3):
+        block1.append(champs[i*3+l])
+        block2.append(champs[j*3+l])
+    
+    temp=block2
+    for l in range(3):
+        champs[j*3+l]=block1[l]
+    for l in range(3):
+        champs[i*3+l]=temp[l]
+    return champs
+
+def varBlockColonne(champs):
+    champs=transposer(champs)
+    champs=varBlockLigne(champs)
+    champs=transposer(champs)
+    return champs
+
+def transposer(champs):
+    temp=copy.deepcopy(champs)
+    for i in range(9):
+        for j in range(9):
+            champs[i][j]=temp[j][i]
+    return champs
