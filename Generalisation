@@ -1,0 +1,93 @@
+import random
+from copy import deepcopy
+from com.sudoku.Desordre import desordre
+from com.sudoku.UniSolution import uniSolution
+from com.sudoku.Optimisation import optimiser
+
+'''Generalisation du sudoku'''
+def generalisation(vide):
+    champs=initialisation()
+    champs=desordre(champs)
+    champs=initJeu(champs,vide)
+    return champs
+
+def initialisation():
+    champs=[]
+    for i in range(9):
+        if i//3<1:
+            val_v=i*3+1
+        if i//3>=1 and i//3<2:
+            val_v=(i-3)*3+2
+        if i//3>=2 and i//3<3:
+            val_v=(i-6)*3+3
+        ligne=[]        
+        for j in range(9):
+            val=val_v+j
+            if val>9:
+                val=val-9
+            ligne.append(val)
+        champs.append(ligne)
+    return champs
+
+def initJeu(champsInit,vide):
+    unique=False
+    while unique==False:
+        champs=deepcopy(champsInit)
+        creationVide(champs, vide)
+        
+        champsFin=deepcopy(champs)
+        champs_veri=[]
+        for i in range(81):
+            ligne=i//9
+            colonne=i%9
+            temp=[]
+            if champs[ligne][colonne]==0:
+                for j in range(9):
+                    temp.append(1)
+            if champs[ligne][colonne]!=0:
+                for j in range(9):
+                    temp.append(0)
+            champs_veri.append(temp)
+        
+        optimiser(champs,champs_veri)
+        
+        unique=uniSolution(champs, champs_veri)
+    return champsFin
+
+def creationVide(champs,vide):
+    for i in range(vide):
+        veri=True
+        while veri==True:
+#             section=random.choice(range(100))
+#             if section<10:
+#                 indice=random.choice(range(3,6))*9+random.choice(range(3,6))
+#             if 10<=section and section<60:
+#                 block=random.choice(range(4))
+#                 if block==0:
+#                     indice=random.choice(range(3))*9+random.choice(range(3,6))
+#                 if block==1:
+#                     indice=random.choice(range(3,6))*9+random.choice(range(3))
+#                 if block==2:
+#                     indice=random.choice(range(3,6))*9+random.choice(range(6,9))
+#                 if block==3:
+#                     indice=random.choice(range(6,9))*9+random.choice(range(3,6))
+#             if 60<=section:
+#                 block=random.choice(range(4))
+#                 if block==0:
+#                     indice=random.choice(range(3))*9+random.choice(range(3))
+#                 if block==1:
+#                     indice=random.choice(range(3))*9+random.choice(range(6,9))
+#                 if block==2:
+#                     indice=random.choice(range(6,9))*9+random.choice(range(3))
+#                 if block==3:
+#                     indice=random.choice(range(6,9))*9+random.choice(range(6,9))
+            
+            indice=random.choice(range(81))
+            ligne=indice//9
+            colonne=indice%9
+            if champs[ligne][colonne]!=0:
+                veri=False
+                champs[ligne][colonne]=0
+
+
+'''Fin de la generalisation du sudoku'''
