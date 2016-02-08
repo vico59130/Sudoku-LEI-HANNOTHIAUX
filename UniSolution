@@ -1,0 +1,136 @@
+import copy
+from copy import deepcopy
+from com.sudoku.Optimisation import optimiser
+
+def uniSolution(champsInit,champs_veriInit):
+    unique=False
+    champs_veriNbInit=[]
+    indiceFin=0
+    for i in range(81):
+        Nb=0
+        for j in range(9):
+            if champs_veriInit[i][j]==1:
+                Nb=Nb+1
+                indiceFin=i
+        champs_veriNbInit.append(Nb)
+    
+    somme=0
+    for i in range(81):
+        somme=somme+champs_veriNbInit[i]
+    
+    '''pour limiter le nombre de calul, on limite "somme"'''
+    if somme>0 and somme<20:
+        print("somme:",somme)
+        calcul=1
+        for i in range(81):
+            if champs_veriNbInit[i]>0:
+                calcul=calcul*champs_veriNbInit[i]
+        
+        print("il faut effectuer ",calcul," fois de calcul.")
+        print(champs_veriNbInit)
+        print(champsInit)
+        
+        solutionNb=[0,0]
+        solutionNb=calSolution(champsInit,champs_veriInit,champs_veriNbInit,0,indiceFin,solutionNb)
+        print("Nombre de solutions est :",solutionNb)
+        
+        if solutionNb[0]==1:
+            unique=True    
+    '''si le somme egal a 0, il n'y a qu'une seule solution'''        
+    if somme==0:
+        print("somme:",somme)
+        print(champsInit)
+        unique=True
+    '''si le somme est trus eleve, on le rejete directement'''
+    if somme >20:
+        unique=False
+        print("somme",somme,". Rejet")
+    return unique
+
+def calSolution(champsInit,champs_veriInit,champs_veriNbInit,initNo,indiceFin,solutionNb):
+    for i in range(initNo,81):
+        if champs_veriNbInit[i]>0:
+            for j in range(9):
+                if champs_veriInit[i][j]==1:
+                    champs=deepcopy(champsInit)
+                    champs[i//9][i%9]=j+1
+                    champs_veri=deepcopy(champs_veriInit)
+                    for x in range(9):
+                        champs_veri[i][x]=0
+#                     optimiser(champs,champs_veri)
+                    champs_veriNb=deepcopy(champs_veriNbInit)
+                    calVeriNb(champs_veri,champs_veriNb)
+                    somme=0
+                    for y in range(81):
+                        somme=champs_veriNb[y]+somme
+                        if somme>0:
+                            break
+                    if i<indiceFin and somme>0:
+                        solutionNb=calSolution(champs, champs_veri, champs_veriNb, i+1, indiceFin, solutionNb)
+                    if i==indiceFin or somme==0:
+                        solutionNb[0]=verificationResultat(champs)+solutionNb[0]
+                        solutionNb[1]=solutionNb[1]+1
+            return solutionNb
+            break
+        
+    return solutionNb
+    
+def calVeriNb(champs_veri, champs_veriNb):
+    for i in range(81):
+        Nb=0
+        champs_veriNb[i]=0
+        for j in range(9):
+            if champs_veri[i][j]==1:
+                Nb=Nb+1
+        champs_veriNb[i]=Nb
+
+def verificationResultat(champs):
+    resultat=1
+    '''Verification de ligne'''
+    if resultat==1:
+        for i in range(9):
+            Nb=0
+            for j in range(1,10):
+                for k in range(9):
+                    if champs[i][k]==j:
+                        Nb=Nb+1
+                        break
+            if Nb<9:
+                resultat=0
+                break
+    '''Verification de colonne'''
+    if resultat==1:
+        for i in range(9):
+            Nb=0
+            for j in range(1,10):
+                for k in range(9):
+                    if champs[k][i]==j:
+                        Nb=Nb+1
+                        break
+            if Nb<9:
+                resultat=0
+                break           
+    '''Verification de block'''
+    if resultat==1:
+        for i in range(9):
+            Nb=0
+            for test in range(1,10):
+                for j in range((i//3)*3,(i//3+1)*3):
+                    for k in range((i%3)*3,(i%3+1)*3):
+                        if champs[j][k]==test:
+                            Nb=Nb+1
+                            break
+                    else:
+                        continue
+                    break 
+            if Nb<9:
+                resultat=0
+                break
+
+#     if resultat==1:
+#         print("yes")
+#     if resultat==0:
+#         print("entrer, mais sans resultat")
+#     print(champs)
+    return resultat
+\ No newline at end of file
