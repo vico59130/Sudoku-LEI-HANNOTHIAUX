@@ -1,0 +1,163 @@
+from copy import deepcopy
+
+def optimiser(champs,champs_veri):
+    fin=False
+    while fin==False:
+        for i in range(81):
+            baisser(champs,champs_veri[i],i)
+        for i in range(81):
+            fin=preRempli(champs, champs_veri)
+
+def baisser(champs,element,indice):
+    ligne=indice//9
+    colonne=indice%9
+
+    somme=0
+    for i in range(9):
+        if element[i]==1:
+            somme=somme+1
+    if somme>0:
+        veriBlock(champs,element,ligne,colonne)
+        veriLigne(champs, element, ligne)    
+        veriColonne(champs, element, colonne)
+
+def veriLigne(champs,element,ligne):
+    block=[]
+    for i in range(9):
+        block.append(champs[ligne][i])
+        
+    elementChoix(element,block)
+
+def veriColonne(champs,element,colonne):
+    block=[]
+    for i in range(9):
+        block.append(champs[i][colonne])
+        
+    elementChoix(element,block)
+    
+def veriBlock(champs,element,ligne,colonne):
+    block=[]
+    for i in range((ligne//3)*3,(ligne//3)*3+3):
+        for j in range((colonne//3)*3,(colonne//3)*3+3):
+            block.append(champs[i][j])
+
+    elementChoix(element,block)
+
+def elementChoix(element,block):
+    for i in range(9):
+        for j in range(1,10):
+            if block[i]==j:
+                element[j-1]=0
+                break
+
+
+def preRempli(champsInit,champs_veriInit):
+    champs=champsInit
+    champs_veri=champs_veriInit
+    fin=True
+
+    finUni=rpUni(champs, champs_veri)
+    finLigne=rpLigne(champs, champs_veri)     
+    finColonne=rpColonne(champs, champs_veri)
+    finBlock=rpBlock(champs, champs_veri)
+         
+    if finUni==False or finLigne==False or finColonne==False or finBlock==False:
+        fin=False
+    
+    return fin
+
+def rpUni(champs,champs_veri):
+    fin=True
+    for i in range(81):
+        choixNb=0
+        for j in range(9):
+            if champs_veri[i][j]==1:
+                choixNb=choixNb+1
+        if choixNb==1:
+            for j in range(9):
+                if champs_veri[i][j]==1:
+                    champs[i//9][i%9]=j+1
+                    reajusterVeri(j,i, champs_veri)
+                    fin=False
+                    break
+    return fin
+
+def rpLigne(champs,champs_veri):
+    fin=True
+   
+    for i in range(9):
+        for j in range(9):
+            somme=0
+            for l in range(9):
+                veri=champs_veri[i*9+l][j]
+                if veri==1:
+                    somme=somme+1
+            if somme==1:
+                for m in range(9):
+                    if champs_veri[i*9+m][j]==1:
+                        champs[i][m]=j+1
+                        reajusterVeri(j,i*9+m, champs_veri)
+                        break
+                fin=False
+    
+    return fin
+
+def rpColonne(champs,champs_veri):
+    fin=True
+   
+    for i in range(9):
+        for j in range(9):
+            somme=0
+            for l in range(9):
+                veri=champs_veri[i+l*9][j]
+                if veri==1:
+                    somme=somme+1
+            if somme==1:
+                for m in range(9):
+                    if champs_veri[i+m*9][j]==1:
+                        champs[m][i]=j+1
+                        reajusterVeri(j,i+m*9, champs_veri)
+                        break
+                fin=False
+    
+    return fin
+
+def rpBlock(champs,champs_veri):
+    fin=True
+    
+    for i in range(9):
+        for j in range(9):
+            somme=0
+            for l in range((i//3)*3,(i//3)*3+3):
+                for m in range((i%3)*3,(i%3)*3+3):
+                    veri=champs_veri[l*9+m][j]
+                    if veri==1:
+                        somme=somme+1
+            if somme==1:
+                for l in range((i//3)*3,(i//3)*3+3):
+                    for m in range((i%3)*3,(i%3)*3+3):
+                        if champs_veri[l*9+m][j]==1:
+                            champs[l][m]=j+1
+                            reajusterVeri(j, l*9+m, champs_veri)
+                            break
+                fin=False
+    return fin
+
+def reajusterVeri(chiffre,indice,champs_veri):
+    chiffre=chiffre
+    indice=indice
+    champs_veri=champs_veri
+
+    for i in range(9):
+        champs_veri[indice][i]=0
+        
+    for i in range(9):
+        champs_veri[(indice//9)*9+i][chiffre]=0
+         
+    for i in range(9):
+        champs_veri[indice%9+i*9][chiffre]=0
+ 
+    for i in range(((indice//9)//3)*3,((indice//9)//3)*3+3):
+        for j in range(((indice%9)//3)*3,((indice%9)//3)*3+3):
+            champs_veri[i*9+j][chiffre]=0
+\ No newline at end of file
